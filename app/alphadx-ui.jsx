@@ -88,15 +88,15 @@ export default function AlphaDXInterface() {
     doctor: [
       { 
         id: 'clinic-intake', 
-        title: 'Clinic Intake', 
-        description: 'Patient registration and initial assessment',
+        title: 'Clinic Intakes', 
+        description: 'Patient registrations and interviews',
         icon: Stethoscope,
         color: 'from-cyan-500 to-blue-600'
       },
       { 
         id: 'assessments', 
         title: 'Assessments and Diagnoses', 
-        description: 'Clinical evaluation and diagnostic workflows',
+        description: 'Clinical evaluations and diagnostic workflows',
         icon: ClipboardCheck,
         color: 'from-indigo-500 to-purple-600'
       }
@@ -105,14 +105,14 @@ export default function AlphaDXInterface() {
       { 
         id: 'medical-records', 
         title: 'Medical Records', 
-        description: 'Comprehensive patient history and documentation',
+        description: 'Comprehensive patient histories and documentation',
         icon: FolderOpen,
         color: 'from-emerald-500 to-teal-600'
       },
       { 
         id: 'imaging', 
-        title: 'Imaging Report Analysis', 
-        description: 'AI-powered radiology and scan interpretation',
+        title: 'Imaging Report Analyses', 
+        description: 'AI-powered radiology and scan interpretations',
         icon: ScanLine,
         color: 'from-blue-500 to-cyan-600'
       },
@@ -126,7 +126,7 @@ export default function AlphaDXInterface() {
       { 
         id: 'wearable-data', 
         title: 'Wearable Data', 
-        description: 'Real-time health metrics and trend analysis',
+        description: 'Real-time health metrics and trend analyses',
         icon: Watch,
         color: 'from-pink-500 to-rose-600'
       }
@@ -134,8 +134,8 @@ export default function AlphaDXInterface() {
     explore: [
       { 
         id: 'treatment-referral', 
-        title: 'Treatment Referral', 
-        description: 'Specialist recommendations and care coordination',
+        title: 'Treatment Referrals', 
+        description: 'Specialist recommendations and care coordinations',
         icon: Users,
         color: 'from-amber-500 to-orange-600'
       },
@@ -149,14 +149,14 @@ export default function AlphaDXInterface() {
       { 
         id: 'wearable-devices', 
         title: 'Wearable Devices', 
-        description: 'Device recommendations and integration',
+        description: 'Device recommendations and integrations',
         icon: Watch,
         color: 'from-teal-500 to-emerald-600'
       },
       { 
         id: 'activity-recommendations', 
         title: 'Activity Recommendations', 
-        description: 'Personalized wellness and exercise guidance',
+        description: 'Personalized wellness and exercise recommendations',
         icon: Dumbbell,
         color: 'from-lime-500 to-green-600'
       }
@@ -325,26 +325,8 @@ export default function AlphaDXInterface() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col relative bg-white">
-        {/* Header */}
-        <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200/50 px-8 py-4 flex items-center justify-between relative z-10">
-          <div className="flex items-center gap-4">
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900">
-                {navItems.find(item => item.id === activeTab)?.label || 'Doctor'}
-              </h2>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-full border border-green-200">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs font-medium text-green-700">Online</span>
-            </div>
-          </div>
-        </header>
-
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-8 bg-white">
+        <div className="flex-1 overflow-y-auto bg-white px-8 pb-8 pt-12">
           <div className="max-w-6xl mx-auto">
             {/* Welcome Header */}
             <div className="mb-8 fade-in-up">
