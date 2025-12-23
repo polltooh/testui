@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { API_BASE_URL } from '../lib/api';
 import { getCurrentToken } from '../lib/temp-token';
 
 export interface Session {
@@ -19,7 +18,7 @@ export function useChatSessions(isAuthenticated: boolean) {
       const token = getCurrentToken();
       if (!token) return;
 
-      const response = await fetch(`${API_BASE_URL}/api/v1/chat/sessions`, {
+      const response = await fetch(`/api/chat/sessions`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

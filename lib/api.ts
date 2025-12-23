@@ -1,6 +1,6 @@
 
-// Use NEXT_PUBLIC_ prefix for client-side access in Next.js
-export const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'http://localhost:8000';
+// For local API routes handled by Next.js
+export const API_BASE_URL = '';
 
 export interface User {
   id: string;

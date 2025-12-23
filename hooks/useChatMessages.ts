@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react';
-import { API_BASE_URL } from '../lib/api';
 import { getCurrentToken } from '../lib/temp-token';
 
 export interface ChatMessage {
@@ -23,7 +22,7 @@ export function useChatMessages(
       const token = getCurrentToken();
       if (!token) return;
 
-      const response = await fetch(`${API_BASE_URL}/api/v1/chat/sessions/${sessionIdToLoad}/messages`, {
+      const response = await fetch(`/api/chat/sessions/${sessionIdToLoad}/messages`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -78,8 +77,8 @@ export function useChatMessages(
 
       const isNewSession = !sessionId;
       const endpoint = sessionId
-        ? `${API_BASE_URL}/api/v1/chat/message`
-        : `${API_BASE_URL}/api/v1/chat/start`;
+        ? `/api/chat/message`
+        : `/api/chat/start`;
 
       // For mode switch, send empty string; for real messages, use the message content
       const messageToSend = isModeSwitchTrigger ? "" : message;
@@ -229,7 +228,7 @@ export function useChatMessages(
         ...prev,
         {
           role: 'ai',
-          content: `Sorry, I encountered an error: ${errorMessage}. Please ensure the backend server is running at ${API_BASE_URL}.`
+          content: `Sorry, I encountered an error: ${errorMessage}. Please check your connection and try again.`
         }
       ]);
       setIsTyping(false);
