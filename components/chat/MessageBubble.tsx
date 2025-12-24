@@ -1,12 +1,23 @@
 import { Bot, User } from 'lucide-react';
 
 interface MessageBubbleProps {
-  role: 'user' | 'ai';
+  role: 'user' | 'ai' | 'system';
   content: string;
   isTyping?: boolean;
 }
 
 export default function MessageBubble({ role, content, isTyping = false }: MessageBubbleProps) {
+  if (role === 'system') {
+    return (
+      <div className="flex justify-center w-full my-6 animate-fadeInUp">
+        <div className="bg-slate-100/80 backdrop-blur-sm border border-slate-200 text-slate-500 text-xs font-semibold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+          {content.includes('MODE_SWITCH') ? 'Self-Diagnosis Mode Started' : content}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`flex gap-4 md:gap-6 ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeInUp`}>
       {role === 'ai' && (

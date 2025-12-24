@@ -2,8 +2,9 @@ import { useState, useRef } from 'react';
 import { getCurrentToken } from '../lib/temp-token';
 
 export interface ChatMessage {
-  role: 'user' | 'ai';
+  role: 'user' | 'ai' | 'system';
   content: string;
+  meta_data?: any;
 }
 
 export function useChatMessages(
@@ -32,8 +33,11 @@ export function useChatMessages(
         const messages = await response.json();
         // Convert messages to chat history format
         const history = messages.map((msg: any) => ({
-          role: msg.role === 'assistant' ? 'ai' : msg.role,
-          content: msg.content
+          role: msg.role === 'assistant' ? 'ai' :
+            msg.role === 'system' ? 'system' :
+              msg.role,
+          content: msg.content,
+          meta_data: msg.meta_data
         }));
         setChatHistory(history);
         setSessionId(sessionIdToLoad);
@@ -152,35 +156,49 @@ export function useChatMessages(
         }
 
         if (processedChunk) {
-          aiContent += processedChunk;
+          // Check for structured system events in the chunk
+          if (processedChunk.includes('__SYSTEM_EVENT:MODE_SWITCH:INTAKE__')) {
+            // Remove the system event from the content that goes to the AI bubble
+            processedChunk = processedChunk.replace('__SYSTEM_EVENT:MODE_SWITCH:INTAKE__', '').trim();
 
-          if (!hasContent && aiContent.trim()) {
-            hasContent = true;
-            // For mode switch triggers, ensure we add the AI message immediately when we get content
-            if (isModeSwitchTrigger && !aiMessageAddedRef.current) {
+            // Add the system message to history
+            setChatHistory(prev => {
+              // Remove the temporary "Start Self-diagnosis Mode" user message if it's there
+              const filtered = prev.filter(m => m.content !== 'Start Self-diagnosis Mode');
+              return [...filtered, { role: 'system', content: '__SYSTEM_EVENT:MODE_SWITCH:INTAKE__' }];
+            });
+
+            // Reset state to prepare for the greeting message that follows
+            aiMessageAddedRef.current = false;
+            aiContent = '';
+          }
+
+          if (processedChunk) {
+            aiContent += processedChunk;
+
+            if (!hasContent && aiContent.trim()) {
+              hasContent = true;
+            }
+
+            if (hasContent && !aiMessageAddedRef.current) {
               aiMessageAddedRef.current = true;
               setChatHistory(prev => [...prev, { role: 'ai', content: '' }]);
             }
-          }
 
-          if (hasContent && !aiMessageAddedRef.current) {
-            aiMessageAddedRef.current = true;
-            setChatHistory(prev => [...prev, { role: 'ai', content: '' }]);
-          }
-
-          if (aiMessageAddedRef.current) {
-            setChatHistory(prev => {
-              if (prev.length === 0) return prev;
-              const newHistory = [...prev];
-              const lastIndex = newHistory.length - 1;
-              if (newHistory[lastIndex] && newHistory[lastIndex].role === 'ai') {
-                newHistory[lastIndex] = {
-                  role: 'ai',
-                  content: aiContent.replace('\n[DIAGNOSIS_GENERATED]', '')
-                };
-              }
-              return newHistory;
-            });
+            if (aiMessageAddedRef.current) {
+              setChatHistory(prev => {
+                if (prev.length === 0) return prev;
+                const newHistory = [...prev];
+                const lastIndex = newHistory.length - 1;
+                if (newHistory[lastIndex] && newHistory[lastIndex].role === 'ai') {
+                  newHistory[lastIndex] = {
+                    ...newHistory[lastIndex],
+                    content: aiContent.replace('\n[DIAGNOSIS_GENERATED]', '')
+                  };
+                }
+                return newHistory;
+              });
+            }
           }
         }
       }
@@ -193,14 +211,13 @@ export function useChatMessages(
           const lastIndex = newHistory.length - 1;
           if (newHistory[lastIndex] && newHistory[lastIndex].role === 'ai') {
             newHistory[lastIndex] = {
-              role: 'ai',
+              ...newHistory[lastIndex],
               content: aiContent.replace('\n[DIAGNOSIS_GENERATED]', '')
             };
           }
           return newHistory;
         });
       } else if (aiContent.trim()) {
-        // For mode switch, add the greeting message directly
         setChatHistory(prev => [...prev, {
           role: 'ai',
           content: aiContent.replace('\n[DIAGNOSIS_GENERATED]', '')
