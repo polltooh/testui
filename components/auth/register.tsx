@@ -55,8 +55,8 @@ export default function Register({ onRegister }: RegisterProps) {
       return;
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
       return;
     }
 
@@ -103,7 +103,19 @@ export default function Register({ onRegister }: RegisterProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Registration failed. Please try again.');
+        // Safe error formatting to prevent React crash if data.error is an object or array
+        let errorMessage = 'Registration failed. Please try again.';
+        if (data.error) {
+          if (typeof data.error === 'string') {
+            errorMessage = data.error;
+          } else if (Array.isArray(data.error)) {
+            // Handle Pydantic validation errors which are often arrays
+            errorMessage = data.error.map((err: any) => err.msg || JSON.stringify(err)).join(', ');
+          } else if (typeof data.error === 'object') {
+            errorMessage = data.error.message || JSON.stringify(data.error);
+          }
+        }
+        setError(errorMessage);
         setIsLoading(false);
         return;
       }
@@ -112,7 +124,8 @@ export default function Register({ onRegister }: RegisterProps) {
       setIsLoading(false);
       setSuccess(true);
 
-    } catch {
+    } catch (err) {
+      console.error('Registration error:', err);
       setIsLoading(false);
       setError('Network error. Please check your connection and try again.');
     }
