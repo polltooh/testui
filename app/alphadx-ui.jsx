@@ -33,24 +33,9 @@ export default function AlphaDXInterface() {
     handleNewChat: handleNewChatFromHook
   } = useChatMessages(chatHistory, setChatHistory, isAuthenticated, fetchSessions);
 
-  // Click outside to close popover
-  const popoverRef = useRef(null);
-  const brandButtonRef = useRef(null);
+  // No-op refs (logic handled internally or by state)
 
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (popoverRef.current && !popoverRef.current.contains(event.target) &&
-        brandButtonRef.current && !brandButtonRef.current.contains(event.target)) {
-        setIsInfoPageOpen(false);
-      }
-    }
-    if (isInfoPageOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isInfoPageOpen]);
+  // Popover state handled by props and state in components
 
   // Auto-close sidebar on logout
   useEffect(() => {
@@ -124,7 +109,7 @@ export default function AlphaDXInterface() {
   };
 
   return (
-    <div className="flex h-screen bg-[#fcfcfd] font-sans overflow-hidden">
+    <div className="flex min-h-screen-safe bg-[#fcfcfd] font-sans overflow-hidden">
       <GlobalStyles />
 
       <ChatSidebar
@@ -192,7 +177,7 @@ export default function AlphaDXInterface() {
           ) : (
             <>
               <ChatMessages messages={chatHistory} isTyping={isTyping} />
-              <div className="px-6 pb-8 md:pb-12 pt-4 border-t border-slate-50 bg-white/50 backdrop-blur-md sticky bottom-0">
+              <div className="px-4 md:px-6 pb-safe md:pb-12 pt-4 border-t border-slate-50 bg-white/50 backdrop-blur-md sticky bottom-0 z-30">
                 <ChatInput
                   message={message}
                   setMessage={setMessage}
