@@ -14,11 +14,23 @@ interface ChatMessagesProps {
 
 export default function ChatMessages({ messages, isTyping }: ChatMessagesProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (scrollRef.current) {
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'auto' });
+    } else if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
+  };
+
+  useEffect(() => {
+    // Scroll immediately on messages or isTyping change
+    scrollToBottom();
+
+    // Also scroll on a slight delay to capture any late rendering or images
+    const timer = setTimeout(scrollToBottom, 50);
+    return () => clearTimeout(timer);
   }, [messages, isTyping]);
 
   if (messages.length === 0) {
@@ -42,6 +54,7 @@ export default function ChatMessages({ messages, isTyping }: ChatMessagesProps) 
         {isTyping && (!messages.length || messages[messages.length - 1].role !== 'ai') && (
           <TypingIndicator />
         )}
+        <div ref={messagesEndRef} className="h-0 w-0 overflow-hidden" />
       </div>
     </div>
   );

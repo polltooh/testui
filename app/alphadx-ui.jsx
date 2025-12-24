@@ -109,7 +109,7 @@ export default function AlphaDXInterface() {
   };
 
   return (
-    <div className="flex min-h-screen-safe bg-[#fcfcfd] font-sans overflow-hidden">
+    <div className="flex h-screen-safe bg-[#fcfcfd] font-sans overflow-hidden">
       <GlobalStyles />
 
       <ChatSidebar
@@ -131,7 +131,7 @@ export default function AlphaDXInterface() {
       />
 
       {/* Main Chat Area */}
-      <main className="flex-1 flex flex-col relative bg-[#fcfcfd] min-w-0">
+      <main className="flex-1 flex flex-col h-full relative bg-[#fcfcfd] min-w-0 overflow-hidden">
         <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
         <ChatHeader
@@ -153,52 +153,56 @@ export default function AlphaDXInterface() {
         )}
 
         {/* Main Content - Switch between different views */}
-        {activeView === 'chat' ? (
-          // Chat View
-          chatHistory.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center max-w-2xl mx-auto px-6 fade-in-up transform -translate-y-20">
-              <h2 className="brand-font text-4xl font-bold text-slate-900 mb-12 tracking-tight leading-tight">
-                Let's make sure your health is taken care of
-              </h2>
-              <div className="w-full max-w-3xl px-4">
-                <ChatInput
-                  message={message}
-                  setMessage={setMessage}
-                  onSubmit={handleSendMessageWrapper}
-                  isTyping={isTyping}
-                  isVoiceMode={isVoiceMode}
-                  voiceError={voiceError}
-                  onToggleVoice={handleToggleVoice}
-                  isDiagnosisMode={isDiagnosisMode}
-                  onToggleDiagnosisMode={() => setIsDiagnosisMode(!isDiagnosisMode)}
-                />
+        <div className="flex-1 overflow-hidden flex flex-col">
+          {activeView === 'chat' ? (
+            // Chat View
+            chatHistory.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-center max-w-2xl mx-auto px-6 fade-in-up">
+                <div className="w-full -translate-y-8 md:-translate-y-16">
+                  <h2 className="brand-font text-2xl md:text-4xl font-bold text-slate-900 mb-8 md:mb-12 tracking-tight leading-tight px-4">
+                    Let's make sure your health is taken care of
+                  </h2>
+                  <div className="w-full max-w-3xl px-4">
+                    <ChatInput
+                      message={message}
+                      setMessage={setMessage}
+                      onSubmit={handleSendMessageWrapper}
+                      isTyping={isTyping}
+                      isVoiceMode={isVoiceMode}
+                      voiceError={voiceError}
+                      onToggleVoice={handleToggleVoice}
+                      isDiagnosisMode={isDiagnosisMode}
+                      onToggleDiagnosisMode={() => setIsDiagnosisMode(!isDiagnosisMode)}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          ) : (
-            <>
-              <ChatMessages messages={chatHistory} isTyping={isTyping} />
-              <div className="px-4 md:px-6 pb-safe md:pb-12 pt-4 border-t border-slate-50 bg-white/50 backdrop-blur-md sticky bottom-0 z-30">
-                <ChatInput
-                  message={message}
-                  setMessage={setMessage}
-                  onSubmit={handleSendMessageWrapper}
-                  isTyping={isTyping}
-                  isVoiceMode={isVoiceMode}
-                  voiceError={voiceError}
-                  onToggleVoice={handleToggleVoice}
-                  isDiagnosisMode={isDiagnosisMode}
-                  onToggleDiagnosisMode={() => setIsDiagnosisMode(!isDiagnosisMode)}
-                />
-              </div>
-            </>
-          )
-        ) : activeView === 'doctors' ? (
-          <DoctorsView />
-        ) : activeView === 'records' ? (
-          <RecordsView />
-        ) : activeView === 'explore' ? (
-          <ExploreView />
-        ) : null}
+            ) : (
+              <>
+                <ChatMessages messages={chatHistory} isTyping={isTyping} />
+                <div className="px-4 md:px-6 pb-safe md:pb-12 pt-4 border-t border-slate-50 bg-white/50 backdrop-blur-md z-30">
+                  <ChatInput
+                    message={message}
+                    setMessage={setMessage}
+                    onSubmit={handleSendMessageWrapper}
+                    isTyping={isTyping}
+                    isVoiceMode={isVoiceMode}
+                    voiceError={voiceError}
+                    onToggleVoice={handleToggleVoice}
+                    isDiagnosisMode={isDiagnosisMode}
+                    onToggleDiagnosisMode={() => setIsDiagnosisMode(!isDiagnosisMode)}
+                  />
+                </div>
+              </>
+            )
+          ) : activeView === 'doctors' ? (
+            <div className="flex-1 overflow-y-auto"><DoctorsView /></div>
+          ) : activeView === 'records' ? (
+            <div className="flex-1 overflow-y-auto"><RecordsView /></div>
+          ) : activeView === 'explore' ? (
+            <div className="flex-1 overflow-y-auto"><ExploreView /></div>
+          ) : null}
+        </div>
       </main>
     </div>
   );
