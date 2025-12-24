@@ -42,14 +42,14 @@ export default function ChatSidebar({
 }: ChatSidebarProps) {
   return (
     <aside className={`
-      fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 flex flex-col
+      fixed inset-y-0 left-0 z-[60] w-72 bg-white border-r border-slate-200 flex flex-col
       transition-all duration-300 ease-in-out lg:relative overflow-hidden
       ${isOpen
         ? 'translate-x-0 opacity-100'
         : '-translate-x-full lg:translate-x-0 lg:w-0 lg:opacity-0 lg:border-none'
       }
     `}>
-      <div className="flex items-center justify-between p-6 pb-8">
+      <div className="flex items-center justify-between p-6 pb-8 pt-safe">
         <div className="flex items-center gap-2">
           {isOpen && (
             <InfoPopover
@@ -79,7 +79,7 @@ export default function ChatSidebar({
         />
       )}
 
-      <div className="p-6 border-t border-slate-100">
+      <div className="p-6 pb-safe border-t border-slate-100">
         {isAuthenticated ? (
           <button
             onClick={onProfileOpen}
