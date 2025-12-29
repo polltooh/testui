@@ -28,6 +28,8 @@ export default function AlphaDXInterface() {
   const {
     isTyping,
     sessionId,
+    decisionChain,
+    isFetchingChain,
     loadSessionMessages,
     handleSendMessage,
     handleNewChat: handleNewChatFromHook
@@ -179,7 +181,7 @@ export default function AlphaDXInterface() {
               </div>
             ) : (
               <>
-                <ChatMessages messages={chatHistory} isTyping={isTyping} />
+                <ChatMessages messages={chatHistory} isTyping={isTyping} decisionChain={decisionChain} />
                 <div className="px-4 md:px-6 pb-safe md:pb-12 pt-4 border-t border-slate-50 bg-white/50 backdrop-blur-md z-30">
                   <ChatInput
                     message={message}

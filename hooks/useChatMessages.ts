@@ -15,7 +15,32 @@ export function useChatMessages(
 ) {
   const [isTyping, setIsTyping] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [decisionChain, setDecisionChain] = useState<any | null>(null);
+  const [isFetchingChain, setIsFetchingChain] = useState(false);
   const aiMessageAddedRef = useRef(false);
+
+  const fetchDecisionChain = async (sid: string) => {
+    try {
+      const token = getCurrentToken();
+      if (!token) return;
+
+      setIsFetchingChain(true);
+      const response = await fetch(`/api/chat/sessions/${sid}/decision-chain`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setDecisionChain(data);
+      }
+    } catch (error) {
+      console.error('Error fetching decision chain:', error);
+    } finally {
+      setIsFetchingChain(false);
+    }
+  };
 
   const loadSessionMessages = async (sessionIdToLoad: string) => {
     if (!isAuthenticated) return;
@@ -41,6 +66,9 @@ export function useChatMessages(
         }));
         setChatHistory(history);
         setSessionId(sessionIdToLoad);
+
+        // Also fetch decision chain for existing intake sessions
+        fetchDecisionChain(sessionIdToLoad);
       }
     } catch (error) {
       console.error('Error loading session messages:', error);
@@ -53,22 +81,17 @@ export function useChatMessages(
     setMessage: (msg: string) => void
   ) => {
     // Allow empty message only if we're switching to diagnosis mode
-    // This triggers the greeting message (works for both new and existing sessions)
     const isModeSwitchTrigger = !message.trim() && isDiagnosisMode;
 
     if ((!message.trim() && !isModeSwitchTrigger) || isTyping) {
       return;
     }
 
-    // For mode switch trigger, don't add placeholder if chat history is empty
-    // The greeting will be the first message
     if (!isModeSwitchTrigger) {
       const newUserMessage: ChatMessage = { role: 'user', content: message };
       setChatHistory(prev => [...prev, newUserMessage]);
       setMessage('');
     } else if (chatHistory.length > 0) {
-      // Only add placeholder if there's existing chat history
-      // This will be removed when greeting arrives
       setChatHistory(prev => [...prev, { role: 'user', content: 'Start Self-diagnosis Mode' }]);
     }
     setIsTyping(true);
@@ -84,7 +107,6 @@ export function useChatMessages(
         ? `/api/chat/message`
         : `/api/chat/start`;
 
-      // For mode switch, send empty string; for real messages, use the message content
       const messageToSend = isModeSwitchTrigger ? "" : message;
 
       const body = sessionId
@@ -118,7 +140,6 @@ export function useChatMessages(
         throw new Error(errorMessage);
       }
 
-      // Reset the ref for this new message
       aiMessageAddedRef.current = false;
 
       if (!response.body) {
@@ -130,6 +151,7 @@ export function useChatMessages(
       let aiContent = '';
       let isFirstChunk = !sessionId;
       let hasContent = false;
+      let finalSessionId = sessionId;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -145,7 +167,8 @@ export function useChatMessages(
             try {
               const sessionData = JSON.parse(sessionDataStr);
               if (sessionData.session_id) {
-                setSessionId(sessionData.session_id);
+                finalSessionId = sessionData.session_id;
+                setSessionId(finalSessionId);
               }
             } catch (e) {
               console.error('Failed to parse session ID', e);
@@ -156,35 +179,25 @@ export function useChatMessages(
         }
 
         if (processedChunk) {
-          // Check for structured system events in the chunk
           if (processedChunk.includes('__SYSTEM_EVENT:MODE_SWITCH:INTAKE__')) {
-            // Remove the system event from the content that goes to the AI bubble
             processedChunk = processedChunk.replace('__SYSTEM_EVENT:MODE_SWITCH:INTAKE__', '').trim();
-
-            // Add the system message to history
             setChatHistory(prev => {
-              // Remove the temporary "Start Self-diagnosis Mode" user message if it's there
               const filtered = prev.filter(m => m.content !== 'Start Self-diagnosis Mode');
               return [...filtered, { role: 'system', content: '__SYSTEM_EVENT:MODE_SWITCH:INTAKE__' }];
             });
-
-            // Reset state to prepare for the greeting message that follows
             aiMessageAddedRef.current = false;
             aiContent = '';
           }
 
           if (processedChunk) {
             aiContent += processedChunk;
-
             if (!hasContent && aiContent.trim()) {
               hasContent = true;
             }
-
             if (hasContent && !aiMessageAddedRef.current) {
               aiMessageAddedRef.current = true;
               setChatHistory(prev => [...prev, { role: 'ai', content: '' }]);
             }
-
             if (aiMessageAddedRef.current) {
               setChatHistory(prev => {
                 if (prev.length === 0) return prev;
@@ -203,7 +216,6 @@ export function useChatMessages(
         }
       }
 
-      // Final update
       if (aiMessageAddedRef.current) {
         setChatHistory(prev => {
           if (prev.length === 0) return prev;
@@ -224,9 +236,6 @@ export function useChatMessages(
         }]);
       }
 
-      // Keep the "Start Self-diagnosis Mode" message visible - don't remove it
-
-      // Refresh sessions if a new session was created
       if (isModeSwitchTrigger && !sessionId && isAuthenticated) {
         fetchSessions();
       }
@@ -235,6 +244,11 @@ export function useChatMessages(
 
       if (isAuthenticated && isNewSession) {
         fetchSessions();
+      }
+
+      // Automatically fetch decision chain after message is finished in diagnosis mode
+      if (isDiagnosisMode && finalSessionId) {
+        fetchDecisionChain(finalSessionId);
       }
     } catch (error) {
       console.error('Chat error:', error);
@@ -255,6 +269,7 @@ export function useChatMessages(
   const handleNewChat = () => {
     setChatHistory([]);
     setSessionId(null);
+    setDecisionChain(null);
     localStorage.removeItem('alphadx_guest_history');
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -264,6 +279,8 @@ export function useChatMessages(
   return {
     isTyping,
     sessionId,
+    decisionChain,
+    isFetchingChain,
     loadSessionMessages,
     handleSendMessage,
     handleNewChat

@@ -10,9 +10,10 @@ interface ChatMessage {
 interface ChatMessagesProps {
   messages: ChatMessage[];
   isTyping: boolean;
+  decisionChain?: any;
 }
 
-export default function ChatMessages({ messages, isTyping }: ChatMessagesProps) {
+export default function ChatMessages({ messages, isTyping, decisionChain }: ChatMessagesProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -43,14 +44,20 @@ export default function ChatMessages({ messages, isTyping }: ChatMessagesProps) 
       className="flex-1 overflow-y-auto chat-container"
     >
       <div className="max-w-3xl mx-auto space-y-8 p-6 md:p-12 pb-32">
-        {messages.map((msg, index) => (
-          <MessageBubble
-            key={index}
-            role={msg.role}
-            content={msg.content}
-            isTyping={msg.role === 'ai' && !msg.content.trim() && isTyping}
-          />
-        ))}
+        {(() => {
+          const lastAiIndex = [...messages].reverse().findIndex(m => m.role === 'ai');
+          const targetIndex = lastAiIndex !== -1 ? messages.length - 1 - lastAiIndex : -1;
+
+          return messages.map((msg, index) => (
+            <MessageBubble
+              key={index}
+              role={msg.role}
+              content={msg.content}
+              isTyping={msg.role === 'ai' && !msg.content.trim() && isTyping}
+              decisionChain={index === targetIndex ? decisionChain : undefined}
+            />
+          ));
+        })()}
         {isTyping && (!messages.length || messages[messages.length - 1].role !== 'ai') && (
           <TypingIndicator />
         )}
